@@ -16,7 +16,7 @@ def client():
 @pytest.fixture(autouse=True)
 def reset_activities():
     """Reset activities data before each test"""
-    # Save original state
+    # Save original state (deep copy)
     original_activities = {
         name: {
             "description": details["description"],
@@ -29,8 +29,11 @@ def reset_activities():
     
     yield
     
-    # Restore original state after test
+    # Restore full original state after test
     for name, details in original_activities.items():
+        activities[name]["description"] = details["description"]
+        activities[name]["schedule"] = details["schedule"]
+        activities[name]["max_participants"] = details["max_participants"]
         activities[name]["participants"] = details["participants"].copy()
 
 
