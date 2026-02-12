@@ -20,43 +20,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
-        // Build participants list
-        let participantsHTML = '';
+        // Build participants list using DOM manipulation to prevent XSS
+        const participantsSection = document.createElement("div");
+        participantsSection.className = "participants-section";
+        
+        const participantsLabel = document.createElement("strong");
+        participantsLabel.textContent = "Participants:";
+        participantsSection.appendChild(participantsLabel);
+        
         if (details.participants.length > 0) {
-          participantsHTML = `
-            <div class="participants-section">
-              <strong>Participants:</strong>
-              <ul class="participants-list">
-                ${details.participants.map(email => `
-                  <li>
-                    <span class="participant-email">${email}</span>
-                    <button class="delete-btn" data-activity="${name}" data-email="${email}" title="Remove participant">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                      </svg>
-                    </button>
-                  </li>
-                `).join('')}
-              </ul>
-            </div>
-          `;
+          const participantsList = document.createElement("ul");
+          participantsList.className = "participants-list";
+          
+          details.participants.forEach(email => {
+            const li = document.createElement("li");
+            
+            const emailSpan = document.createElement("span");
+            emailSpan.className = "participant-email";
+            emailSpan.textContent = email;
+            li.appendChild(emailSpan);
+            
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-btn";
+            deleteBtn.dataset.activity = name;
+            deleteBtn.dataset.email = email;
+            deleteBtn.title = "Remove participant";
+            
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", "16");
+            svg.setAttribute("height", "16");
+            svg.setAttribute("viewBox", "0 0 16 16");
+            svg.setAttribute("fill", "currentColor");
+            
+            const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path1.setAttribute("d", "M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z");
+            
+            const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path2.setAttribute("fill-rule", "evenodd");
+            path2.setAttribute("d", "M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z");
+            
+            svg.appendChild(path1);
+            svg.appendChild(path2);
+            deleteBtn.appendChild(svg);
+            
+            li.appendChild(deleteBtn);
+            participantsList.appendChild(li);
+          });
+          
+          participantsSection.appendChild(participantsList);
         } else {
-          participantsHTML = `
-            <div class="participants-section">
-              <strong>Participants:</strong>
-              <p class="no-participants">No participants yet - be the first to sign up!</p>
-            </div>
-          `;
+          const noParts = document.createElement("p");
+          noParts.className = "no-participants";
+          noParts.textContent = "No participants yet - be the first to sign up!";
+          participantsSection.appendChild(noParts);
         }
 
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-          ${participantsHTML}
-        `;
+        // Build activity card content using DOM manipulation
+        const h4 = document.createElement("h4");
+        h4.textContent = name;
+        activityCard.appendChild(h4);
+        
+        const descP = document.createElement("p");
+        descP.textContent = details.description;
+        activityCard.appendChild(descP);
+        
+        const scheduleP = document.createElement("p");
+        const scheduleStrong = document.createElement("strong");
+        scheduleStrong.textContent = "Schedule:";
+        scheduleP.appendChild(scheduleStrong);
+        scheduleP.appendChild(document.createTextNode(" " + details.schedule));
+        activityCard.appendChild(scheduleP);
+        
+        const availP = document.createElement("p");
+        const availStrong = document.createElement("strong");
+        availStrong.textContent = "Availability:";
+        availP.appendChild(availStrong);
+        availP.appendChild(document.createTextNode(" " + spotsLeft + " spots left"));
+        activityCard.appendChild(availP);
+        
+        activityCard.appendChild(participantsSection);
 
         activitiesList.appendChild(activityCard);
 
